@@ -67,6 +67,21 @@ public class AccountController {
         }
     }
 
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    @GetMapping("/bank")
+    public ResponseEntity<?> getBankAccounts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        try {
+
+            Pageable pageable = PageRequest.of(page, size);
+            Page<AccountDto> accounts = accountService.getBankAccounts(pageable);
+            return ResponseEntity.ok(accounts);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorMessageDto("Unexpected error occurred."));
+        }
+    }
+
     @Operation(summary = "Get client accounts with filtering and pagination")
     @ApiResponses({@ApiResponse(responseCode = "200", description = "Accounts retrieved successfully")})
     @PreAuthorize("hasRole('EMPLOYEE')")
@@ -214,6 +229,21 @@ public class AccountController {
         }
     }
 
+    // interni endpoint
+    @Operation(summary = "Get client account balance")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Account balance retrieved successfully"),
+            @ApiResponse(responseCode = "404", description = "Account balance retrieved successfully")
+    })
+    @PreAuthorize("hasRole('EMPLOYEE')")
+    @GetMapping("/{accountNumber}/balance")
+    public ResponseEntity<?> getAccountBalance(@PathVariable String accountNumber) {
+        try {
+            return ResponseEntity.ok(accountService.getAccountBalance(accountNumber));
+        } catch (AccountNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+    }
 
     // Globalni Exception Handleri
 
